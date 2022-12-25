@@ -687,6 +687,21 @@ const stock = {
         }
     },
 
+    one: async (req, res) => {
+        try {
+            const { body } = req
+            const stockList = await stockR.one({
+                product_id: body.product_id ,isDelete: false
+            })
+            const responseObj = stockList
+            res.status(200).send(responseObj)
+        }
+        catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    },
+
     listAll: async (req, res) => {
         try {
             const { body } = req

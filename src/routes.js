@@ -46,6 +46,7 @@ router.post('/logistic/product/destroy', product.destroy)
 //Stock
 router.post('/logistic/stock/create', stock.create)
 router.post('/logistic/stock/update', stock.update)
+router.post('/logistic/stock/one' , stock.one)
 router.get('/logistic/stock/list', stock.listAll)
 router.post('/logistic/stock/destroy', stock.destroy)
 
