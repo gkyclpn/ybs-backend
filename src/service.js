@@ -1,6 +1,5 @@
 require('dotenv').config()
 
-const { create } = require('./models/country')
 const countryR = require('./repositories/country')
 const countryDistanceR = require('./repositories/countryDistance')
 const customerR = require("./repositories/customer")
@@ -69,7 +68,7 @@ const country = {
         try {
             const { body } = req
             const countryList = await countryR.one({
-                id: body.country_id ,isDelete: false
+                id: body.country_id, isDelete: false 
             })
             const responseObj = countryList
             res.status(200).send(responseObj)
@@ -121,21 +120,23 @@ const countryDistance = {
     listAll: async (req, res) => {
         try {
             const { body } = req
-            const countryDistance1 = await countryDistanceR.list({
+            let countryDistance1 = await countryDistanceR.list({
                 country1_id: body.country_id, isDelete: false
             })
-            countryDistance1.map(async (distance,i) => {
+            await Promise.all(countryDistance1.map(async (distance,i) => {
+                //console.log(distance.country2_id)
                 const getCountry = await countryR.one({id: distance.country2_id, isDelete: false})
                 countryDistance1[i].country_name = getCountry.name
-            })
-            const countryDistance2 = await countryDistanceR.list({
+            }))
+            let countryDistance2 = await countryDistanceR.list({
                 country2_id: body.country_id, isDelete: false
             })
-            countryDistance2.map(async (distance,i) => {
-                const getCountry = await countryR.one({id: distance.country1_id, isDelete: false})
-                countryDistance2[i].country_name = getCountry.name
-            })
-            //const combinedDistance = countryDistance1.concat(countryDistance2)
+            await Promise.all(countryDistance2.map(async (distance,i) => {
+                //console.log(distance.country1_id) 
+                const getCountry2 = await countryR.one({id: distance.country1_id, isDelete: false})
+                countryDistance2[i].country_name = getCountry2.name
+            })) 
+            //const combinedDistance = countryDistance2.concat(countryDistance1)
             const responseObj = [...countryDistance1, ...countryDistance2]
             res.status(200).send(responseObj)
         }
@@ -500,6 +501,21 @@ const store = {
             res.status(400).send(error)
         }
     },
+    
+    one: async (req, res) => {
+        try {
+            const { body } = req
+            const storeList = await storeR.one({
+                id: body.store_id, isDelete: false 
+            })
+            const responseObj = storeList
+            res.status(200).send(responseObj)
+        }
+        catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    },
 
     listAll: async (req, res) => {
         try {
@@ -580,6 +596,21 @@ const product = {
                 product: true
             }
 
+            res.status(200).send(responseObj)
+        }
+        catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    },
+
+    one: async (req, res) => {
+        try {
+            const { body } = req
+            const productList = await productR.one({
+                id: body.product_id, isDelete: false 
+            })
+            const responseObj = productList
             res.status(200).send(responseObj)
         }
         catch (error) {
@@ -690,9 +721,41 @@ const stock = {
     one: async (req, res) => {
         try {
             const { body } = req
-            const stockList = await stockR.one({
-                product_id: body.product_id ,isDelete: false
-            })
+            let stockList = {}
+            if (body.product_id) {
+                stockList = await stockR.one({
+                    product_id: body.product_id ,isDelete: false
+                })
+            }
+            else {
+                stockList = await stockR.one({
+                    id: body.id ,isDelete: false
+                })
+            }
+            
+            const responseObj = stockList
+            res.status(200).send(responseObj)
+        }
+        catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    },
+
+    ones: async (req, res) => {
+        try {
+            const { body } = req
+            let stockList = {}
+            if (body.store_id) {
+                stockList = await stockR.list({
+                    store_id: body.store_id ,isDelete: false
+                })
+            }
+            else {
+                stockList = await stockR.list({
+                    product_id: body.product_id ,isDelete: false
+                })
+            }
             const responseObj = stockList
             res.status(200).send(responseObj)
         }

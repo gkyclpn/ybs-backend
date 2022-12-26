@@ -34,12 +34,14 @@ router.post('/logistic/transport_fee/destroy', transportFee.destroy)
 //Store
 router.post('/logistic/store/create', store.create)
 router.post('/logistic/store/update', store.update)
+router.post('/logistic/store/one', store.one)
 router.get('/logistic/store/list', store.listAll)
 router.post('/logistic/store/destroy', store.destroy)
 
 //Product
 router.post('/logistic/product/create', product.create)
 router.post('/logistic/product/update', product.update)
+router.post('/logistic/product/one', product.one)
 router.get('/logistic/product/list', product.listAll)
 router.post('/logistic/product/destroy', product.destroy)
 
@@ -47,6 +49,7 @@ router.post('/logistic/product/destroy', product.destroy)
 router.post('/logistic/stock/create', stock.create)
 router.post('/logistic/stock/update', stock.update)
 router.post('/logistic/stock/one' , stock.one)
+router.post('/logistic/stock/ones' , stock.ones)
 router.get('/logistic/stock/list', stock.listAll)
 router.post('/logistic/stock/destroy', stock.destroy)
 
