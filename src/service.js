@@ -210,6 +210,21 @@ const customer = {
         }
     },
 
+    one: async (req, res) => {
+        try {
+            const { body } = req
+            const customerList = await customerR.one({
+                id: body.customer_id, isDelete: false 
+            })
+            const responseObj = customerList
+            res.status(200).send(responseObj)
+        }
+        catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    },
+
     destroy: async (req, res) => {
         try {
             const { body } = req

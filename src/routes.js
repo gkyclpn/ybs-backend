@@ -13,6 +13,7 @@ router.post('/logistic/country_distance/list', countryDistance.listAll)
 //Customer
 router.post('/logistic/customer/create', customer.create)
 router.post('/logistic/customer/update', customer.update)
+router.post('/logistic/customer/one', customer.one)
 router.get('/logistic/customer/list', customer.listAll)
 router.post('/logistic/customer/destroy', customer.destroy)
 
