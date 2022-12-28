@@ -254,6 +254,89 @@ const customer = {
 
 const order = {
 
+    create: async (req, res) => {
+        try {
+            const { body } = req
+            
+            const allStocks = await stockR.list({product_id: body.product_id, isDelete: false})
+            const allDistances1 = await countryDistanceR.list({country1_id: body.country_id, isDelete: false})
+            const allDistances2 = await countryDistanceR.list({country2_id: body.country_id, isDelete: false})
+            const allDistances = [...allDistances1, ...allDistances2]
+            allDistances.sort((a, b) => a.distance - b.distance);
+            let nearest_store_id = null
+            let nearest_country_id = null
+            let min = allDistances[allDistances.length-1].distance
+            if (allStocks) {
+                let run = await Promise.all(allStocks.map(async (stock) => {
+                    let store = await storeR.one({id: stock.store_id, isDelete: false})
+                    if (store.country_id === body.country_id && stock.stock >= body.amount) {
+                        
+                        nearest_store_id = store.id
+                        nearest_country_id = store.country_id
+                    }
+                    else {
+                        let control = true
+                        let i = 0
+                        while (allDistances.length > i && control) {
+                            let diffCountryId = null
+                            if (allDistances[i].country1_id !== body.country_id)
+                                diffCountryId = allDistances[i].country1_id
+                            else
+                                diffCountryId = allDistances[i].country2_id
+                            
+                            if (store.country_id === diffCountryId && stock.stock >= body.amount && min >= allDistances[i].distance) {
+                                nearest_store_id = store.id
+                                nearest_country_id = store.country_id
+                                min = allDistances[i].distance
+                                control = false
+                            }
+                            i++
+                        }   
+                    }
+                }))
+            }
+        
+            
+
+            if (nearest_country_id && nearest_store_id) {
+                const getStock = await stockR.one({product_id: body.product_id, store_id: nearest_store_id, isDelete: false })
+
+                const updatedStock = await stockR.update({stock: (getStock.stock - body.amount)}, {id: getStock.id})
+
+                const createdOrder = await orderR.create({
+                    customer_id: body.customer_id,
+                    product_id: body.product_id,
+                    country_id: body.country_id,
+                    nearest_country_id: nearest_country_id,
+                    nearest_store_id: nearest_store_id,
+                    amount: body.amount
+                })
+    
+                const responseObj = {
+                    id: createdOrder.id,
+                    customer_id: createdOrder.customer_id,
+                    product_id: createdOrder.product_id,
+                    country_id: createdOrder.country_id,
+                    amount: createdOrder.amount,
+                    nearest_country_id: nearest_country_id,
+                    nearest_store_id: nearest_store_id,
+                    order: true
+                }
+
+                res.status(200).send(responseObj)
+                
+            }
+            else {
+                throw "Not enough stock for the product"
+            }
+   
+        }
+        catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    },
+
     listAll: async (req, res) => {
         try {
             const { body } = req
@@ -278,13 +361,6 @@ const transport = {
             const createdTransport = await transportR.create({
                 name: body.name,
             })
-            const createdTransportFee = await transportFeeR.create({
-                transport_id: createdTransport.id,
-                store1_id: body.store1_id,
-                store2_id: body.store2_id,
-                fee: body.fee
-            })
-            
             const responseObj = {
                 id: createdTransport.id,
                 name: createdTransport.name,
@@ -334,6 +410,22 @@ const transport = {
             res.status(400).send(error)
         }
     },
+
+    one: async (req, res) => {
+        try {
+            const { body } = req
+            const transportList = await transportR.one({
+                id: body.transport_id, isDelete: false 
+            })
+            const responseObj = transportList
+            res.status(200).send(responseObj)
+        }
+        catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    },
+
 
     destroy: async (req, res) => {
         try {
@@ -409,6 +501,7 @@ const transportFee = {
             })
             if (isTransportFee) {
                 const updatedTransportFee = await transportFeeR.update({
+                    transport_id: body.transport_id,
                     store1_id: body.store1_id,
                     store2_id: body.store2_id,
                     fee: body.fee
@@ -440,7 +533,6 @@ const transportFee = {
             const { body } = req
             
             const transportFeeList = await transportFeeR.list({
-                transport_id: body.transport_id,
                 isDelete: false
             })
             const responseObj = transportFeeList
@@ -451,6 +543,37 @@ const transportFee = {
             res.status(400).send(error)
         }
     },
+
+    one: async (req, res) => {
+        try {
+            const { body } = req
+            const transportFeeList = await transportFeeR.one({
+                id: body.id, isDelete: false 
+            })
+            const responseObj = transportFeeList
+            res.status(200).send(responseObj)
+        }
+        catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    },
+
+    ones: async (req, res) => {
+        try {
+            const { body } = req
+            const transportFeeList = await transportFeeR.list({
+                transport_id: body.transport_id, isDelete: false 
+            })
+            const responseObj = transportFeeList
+            res.status(200).send(responseObj)
+        }
+        catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    },
+
 
     destroy: async (req, res) => {
         try {
@@ -684,20 +807,25 @@ const stock = {
     create: async (req, res) => {
         try {
             const { body } = req
-            const createdStock = await stockR.create({
-                store_id: body.store_id,
-                product_id: body.product_id,
-                stock: body.stock
-            })
-            const responseObj = {
-                id: createdStock.id,
-                store_id: createdStock.store_id,
-                product_id: createdStock.product_id,
-                stock: createdStock.stock,
-                isStock: true
+            if (body.stock >= 0) {
+                const createdStock = await stockR.create({
+                    store_id: body.store_id,
+                    product_id: body.product_id,
+                    stock: body.stock
+                })
+                const responseObj = {
+                    id: createdStock.id,
+                    store_id: createdStock.store_id,
+                    product_id: createdStock.product_id,
+                    stock: createdStock.stock,
+                    isStock: true
+                }
+                res.status(200).send(responseObj)
             }
-
-            res.status(200).send(responseObj)
+            else {
+                throw "Negative Value!"
+            }         
+   
         }
         catch (error) {
             console.log(error)

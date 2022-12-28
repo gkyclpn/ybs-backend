@@ -18,18 +18,22 @@ router.get('/logistic/customer/list', customer.listAll)
 router.post('/logistic/customer/destroy', customer.destroy)
 
 //Order
+router.post('/logistic/order/create', order.create)
 router.get('/logistic/order/list', order.listAll)
 
 //Transport
 router.post('/logistic/transport/create', transport.create)
 router.post('/logistic/transport/update', transport.update)
+router.post('/logistic/transport/one', transport.one)
 router.get('/logistic/transport/list', transport.listAll)
 router.post('/logistic/transport/destroy', transport.destroy)
 
 //TransportFee
 router.post('/logistic/transport_fee/create', transportFee.create)
 router.post('/logistic/transport_fee/update', transportFee.update)
-router.post('/logistic/transport_fee/list', transportFee.listAll)
+router.get('/logistic/transport_fee/list', transportFee.listAll)
+router.post('/logistic/transport_fee/one' , transportFee.one)
+router.post('/logistic/transport_fee/ones' , transportFee.ones)
 router.post('/logistic/transport_fee/destroy', transportFee.destroy)
 
 //Store

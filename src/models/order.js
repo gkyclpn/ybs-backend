@@ -18,7 +18,16 @@ const tableColumns = {
     customer_id: {
         type: DataTypes.INTEGER
     },
-    number: {
+    country_id: {
+        type: DataTypes.INTEGER
+    },
+    nearest_country_id: {
+        type: DataTypes.INTEGER
+    },
+    nearest_store_id: {
+        type: DataTypes.INTEGER
+    },
+    amount: {
         type: DataTypes.INTEGER
     },
     isDelete: {
